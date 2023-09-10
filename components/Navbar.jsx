@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { signIn, signOut, useSession, getProviders } from "next-auth/react";
 
 const Navbar = () => {
-  const isUserLoggedIn = true;
+  const { data: session } = useSession();
   const [providers, setProviders] = useState(null);
   const [dropDown,setDropDOwn] = useState(false)
 
@@ -30,7 +30,7 @@ const Navbar = () => {
       </Link>
 
       <div className="sm:flex hidden">
-        {isUserLoggedIn ? (
+        {session?.user ? (
           <div className="flex gap-3 md:gap-5">
             <Link href={"/create-prompt"} className="black_btn">
               Create Post
@@ -41,7 +41,7 @@ const Navbar = () => {
 
             <Link href={"/profile"}>
               <Image
-                src={"/assets/images/logo.svg"}
+                src={session?.user.image}
                 width={35}
                 height={35}
                 className="rounded-full"
@@ -50,7 +50,7 @@ const Navbar = () => {
             </Link>
           </div>
         ) : (
-          providers && Object.values(provider).map((prov)=>
+          providers && Object.values(providers).map((prov)=>
           <button type="button"
           onClick={()=>signIn(prov.id)}
           key={prov.name}
@@ -59,6 +59,67 @@ const Navbar = () => {
            Sign In
           </button>
           )
+        )}
+      </div>
+
+      {/* Mobile Nav */}
+      <div className='sm:hidden flex relative'>
+        {session?.user ? (
+          <div className='flex'>
+            <Image
+              src={session?.user.image}
+              width={37}
+              height={37}
+              className='rounded-full'
+              alt='profile'
+              onClick={() => setDropDOwn(!dropDown)}
+            />
+
+            {dropDown && (
+              <div className='dropdown'>
+                <Link
+                  href='/profile'
+                  className='dropdown_link'
+                  onClick={() => setDropDOwn(false)}
+                >
+                  My Profile
+                </Link>
+                <Link
+                  href='/create-prompt'
+                  className='dropdown_link'
+                  onClick={() => setDropDOwn(false)}
+                >
+                  Create Prompt
+                </Link>
+                <button
+                  type='button'
+                  onClick={() => {
+                    setDropDOwn(false);
+                    signOut();
+                  }}
+                  className='mt-5 w-full black_btn'
+                >
+                  Sign Out
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            {providers &&
+              Object.values(providers).map((provider) => (
+                <button
+                  type='button'
+                  key={provider.name}
+                  onClick={() => {
+                    signIn(provider.id);
+                  }}
+                  className='black_btn'
+                >
+                  Sign in
+                </button>
+              ))}
+          </>
         )}
       </div>
     </nav>
